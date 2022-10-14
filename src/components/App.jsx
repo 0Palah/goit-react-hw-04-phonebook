@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState } from 'react';
 import { nanoid } from 'nanoid';
 
 import Section from './Section/Section';
@@ -6,56 +6,45 @@ import ContactForm from './ContactForm/ContactForm';
 import ContactsList from './ContactsList/ContactsList';
 import Filter from './Filter/Filter';
 import css from './App.module.css';
+import { useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
+  useEffect(() => {
     const contacts = localStorage.getItem('contacts');
     const parsedContacts = JSON.parse(contacts);
     if (parsedContacts && parsedContacts.length) {
-      this.setState({ contacts: parsedContacts });
+      setContacts(parsedContacts);
     }
-  }
+  }, []);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  handleAddContact = ({ name, number }) => {
-    const namesArr = this.state.contacts.map(el => el.name.toLocaleLowerCase());
+  const handleAddContact = ({ name, number }) => {
+    const namesArr = contacts.map(el => el.name.toLocaleLowerCase());
 
     if (!namesArr.includes(name.toLocaleLowerCase())) {
-      this.setState(prevState => ({
-        contacts: [
-          ...prevState.contacts,
-          { id: nanoid(10), name: name, number: number },
-        ],
-      }));
+      setContacts(prev => [
+        ...prev,
+        { id: nanoid(10), name: name, number: number },
+      ]);
     } else {
       alert(`${name} is already in contact.`);
     }
   };
 
-  handleDeleteUser = userId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(user => user.id !== userId),
-    }));
+  const handleDeleteUser = userId =>
+    setContacts(prev => prev.filter(user => user.id !== userId));
+
+  const handleChangeSearch = evt => {
+    setFilter(evt.target.value);
   };
 
-  handleChangeSearch = evt => {
-    const { value } = evt.target;
-    this.setState({ filter: value });
-  };
-
-  applyFilters = () => {
-    const { contacts, filter } = this.state;
-
+  const applyFilters = () => {
     return contacts.filter(({ name }) => {
       if (filter && !name.toLowerCase().includes(filter.toLowerCase()))
         return false;
@@ -63,21 +52,20 @@ export class App extends Component {
     });
   };
 
-  render() {
-    const { filter } = this.state;
-    return (
-      <div className={css.appWrapper}>
-        <Section title="Phonebook">
-          <ContactForm onAddContact={this.handleAddContact} />
-        </Section>
-        <Section title="Contacts">
-          <Filter filter={filter} onChangeSearch={this.handleChangeSearch} />
-          <ContactsList
-            contacts={this.applyFilters()}
-            onDeleteUser={this.handleDeleteUser}
-          />
-        </Section>
-      </div>
-    );
-  }
-}
+  return (
+    <div className={css.appWrapper}>
+      <Section title="Phonebook">
+        <ContactForm onAddContact={handleAddContact} />
+      </Section>
+      <Section title="Contacts">
+        <Filter filter={filter} onChangeSearch={handleChangeSearch} />
+        <ContactsList
+          contacts={applyFilters()}
+          onDeleteUser={handleDeleteUser}
+        />
+      </Section>
+    </div>
+  );
+};
+
+export default App;
