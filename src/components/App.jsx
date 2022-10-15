@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 
 import Section from './Section/Section';
@@ -6,7 +6,6 @@ import ContactForm from './ContactForm/ContactForm';
 import ContactsList from './ContactsList/ContactsList';
 import Filter from './Filter/Filter';
 import css from './App.module.css';
-import { useEffect } from 'react';
 
 const App = () => {
   const [contacts, setContacts] = useState([]);
